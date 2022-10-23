@@ -33,7 +33,7 @@ class Ui_animation_view(object):
         self.framerate_adjust.setButtonSymbols(QtWidgets.QAbstractSpinBox.UpDownArrows)
         self.framerate_adjust.setMinimum(1)
         self.framerate_adjust.setMaximum(140)
-        self.framerate_adjust.setProperty("value", 24)
+        self.framerate_adjust.setProperty("value", 10)
         self.framerate_adjust.setObjectName("framerate_adjust")
         self.horizontalLayout.addWidget(self.framerate_adjust)
         self.play_anim_button = QtWidgets.QPushButton(self.frame)

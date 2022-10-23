@@ -32,7 +32,7 @@ def make_png_xml(frames, save_dir, character_name="Result", progressupdatefn=Non
 
     try:
         # init XML
-        root = ET.Element("TextureAtlas")
+        root = ET.Element("Texture")
         root.text = "\n"
         root.tail = linesep
         root.attrib['imagePath'] = f"{character_name}.png"
@@ -42,12 +42,12 @@ def make_png_xml(frames, save_dir, character_name="Result", progressupdatefn=Non
             final_pose_name = pose
             if f.data.from_single_png or (not f.data.from_single_png and f.modified):
                 if prefix_type == 'charname':
-                    final_pose_name = f"{character_name} {final_pose_name}"
+                    final_pose_name = f"{character_name}_{final_pose_name}"
                 elif prefix_type == 'custom':
-                    final_pose_name = f"{custom_prefix} {final_pose_name}"
+                    final_pose_name = f"{custom_prefix}_{final_pose_name}"
             else:
                 if must_use_prefix and prefix_type == 'custom':
-                    final_pose_name = f"{custom_prefix} {final_pose_name}"
+                    final_pose_name = f"{custom_prefix}_{final_pose_name}"
             
             f.data.xml_pose_name = final_pose_name
         
@@ -121,25 +121,53 @@ def make_png_xml(frames, save_dir, character_name="Result", progressupdatefn=Non
         #     pass
         # convert frame_dict_arr into a dict[image_hash -> position in spritesheet]:
         imghash_dict = { rect['id']: (rect['fit']['x'], rect['fit']['y']) for rect in frame_dict_arr }
+
+        pose_arr = [ frame.data.pose_name for frame in frames ]
+        unique_poses = list(set(pose_arr))
+        animations = { animation: [] for animation in unique_poses }
         for frame in frames:
-            subtexture_element = ET.Element("SubTexture")
-            subtexture_element.tail = linesep
-            w, h = imghashes.get(frame.data.img_hash).size
-            subtexture_element.attrib = {
-                "name" : frame.data.xml_pose_name,
-                "x": str(imghash_dict[frame.data.img_hash][0]),
-                "y": str(imghash_dict[frame.data.img_hash][1]),
-                "width": str(w + 2*padding_pixels),
-                "height": str(h + 2*padding_pixels),
-                "frameX": str(frame.data.framex),
-                "frameY": str(frame.data.framey),
-                "frameWidth": str(frame.data.framew),
-                "frameHeight": str(frame.data.frameh),
-            }
-            root.append(subtexture_element)
+            animations[frame.data.pose_name].append(frame)
+            
+        for animation in unique_poses:
+            animation_element = ET.Element("Animation")
+            animation_element.tail = linesep
+            animation_element.attrib['aniID'] = animation
+            animation_element.attrib['frameTime'] = "100"
+            for frame in animations[animation]:
+                subtexture_element = ET.Element("Frame")
+                subtexture_element.tail = linesep
+                w, h = imghashes.get(frame.data.img_hash).size
+                subtexture_element.attrib = {
+                    "name" : frame.data.xml_pose_name,
+                    "x": str(imghash_dict[frame.data.img_hash][0]),
+                    "y": str(imghash_dict[frame.data.img_hash][1]),
+                    "width": str(w + 2*padding_pixels),
+                    "height": str(h + 2*padding_pixels),
+                }
+                animation_element.append(subtexture_element)
+            root.append(animation_element)
             prgs += 1
             progressupdatefn(prgs, f"Saving {frame.data.xml_pose_name} to XML...")
-            # im.close()
+
+        # for frame in frames:
+        #     subtexture_element = ET.Element("Frame")
+        #     subtexture_element.tail = linesep
+        #     w, h = imghashes.get(frame.data.img_hash).size
+        #     subtexture_element.attrib = {
+        #         "name" : frame.data.xml_pose_name,
+        #         "x": str(imghash_dict[frame.data.img_hash][0]),
+        #         "y": str(imghash_dict[frame.data.img_hash][1]),
+        #         "width": str(w + 2*padding_pixels),
+        #         "height": str(h + 2*padding_pixels),
+        #         "frameX": str(frame.data.framex),
+        #         "frameY": str(frame.data.framey),
+        #         "frameWidth": str(frame.data.framew),
+        #         "frameHeight": str(frame.data.frameh),
+        #     }
+        #     root.append(subtexture_element)
+        #     prgs += 1
+        #     progressupdatefn(prgs, f"Saving {frame.data.xml_pose_name} to XML...")
+        #     # im.close()
         print("Saving XML...")
         xmltree = ET.ElementTree(root)
         with open(path.join(save_dir, character_name) + ".xml", 'wb') as f:

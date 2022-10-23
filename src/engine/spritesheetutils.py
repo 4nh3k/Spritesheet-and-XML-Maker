@@ -32,6 +32,7 @@ def get_true_frame(img , framex, framey, framew, frameh, flipx=False, flipy=Fals
 
     return final_frame
 
+
 def add_pose_numbers(frame_arr):
     pose_arr = [ frame.data.pose_name for frame in frame_arr ]
     unique_poses = list(set(pose_arr))
