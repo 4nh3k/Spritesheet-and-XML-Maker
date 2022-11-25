@@ -13,6 +13,7 @@ class AnimationView(QWidget):
         self.ui.play_anim_button.clicked.connect(self.play_animation)
         self.ui.animation_display_area.setText("Click 'Play Animation' to start the animation preview")
         self.ui.animation_display_area.setStyleSheet("background-color:#696969;")
+        #self.ui.animation_display_area.setScaledContents(True)
         
         self.animframes = []
         self.anim_names = {}
@@ -54,7 +55,7 @@ class AnimationView(QWidget):
             curframe.data.framew if curframe.data.framew is not None else curframeimg.width,
             curframe.data.frameh if curframe.data.frameh is not None else curframeimg.height,
         ).toqpixmap()
-        self.ui.animation_display_area.setPixmap(truframe_pixmap)
+        self.ui.animation_display_area.setPixmap(truframe_pixmap.scaled(curframeimg.width * 10, curframeimg.height * 10))
         self.frameindex = (self.frameindex + 1) % len(self.animframes)
     
     def closeEvent(self, a0):
